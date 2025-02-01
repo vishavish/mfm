@@ -1,18 +1,28 @@
 using System.Collections.ObjectModel;
 using Terminal.Gui;
+using Utils;
 
 
 public class App : Window
 {
+	private static FrameView? _fileFrameView;
+	private static ListView? _fileListView;
+	private static FrameView? _fileDetailFrameView;
+	private static TextView? _fileDetailTextView;
+	private static FrameView? _fileContentFrameView;
+	private static TextView? _fileContentTextView;
+	private static StatusBar? _statusBar;
+
 	public App()
 	{
-		Title = $"mfm - { Application.QuitKey } to quit";
+		Title = "mfm";
 		ColorScheme = new ColorScheme
 		{
 			Normal = Application.Driver!.MakeColor(Color.BrightGreen, Color.DarkGray)
 		};
 
-		var fileFrameView = new FrameView()
+		//Frame for the list of files and directories
+		_fileFrameView = new FrameView()
 		{
 			Y = 1,
 			X = 1,
@@ -21,43 +31,79 @@ public class App : Window
 			BorderStyle = LineStyle.None,
 		};
 
-		var fileListView = new ListView()
+		//View for the fileFrame
+		_fileListView = new ListView()
 		{
 			Width = Dim.Fill(),
 			Height = Dim. Fill()	
 		};
 
-		var detailFrameView = new FrameView()
+		//Frame for the text contents of the file
+		_fileContentFrameView = new FrameView()
 		{
-			X = Pos.Right(fileFrameView),
+			X = Pos.Right(_fileFrameView),
+			// Y = 
 			Width = Dim.Percent(75),
-			Height = Dim.Fill()		
+			Height = Dim.Percent(75),
 		};
 
-		var detailView = new TextView()
+		//TextView for the fileTextFrame
+		_fileContentTextView = new TextView()
 		{
 			Width = Dim.Fill(),
 			Height = Dim.Fill(),
 			ReadOnly = true,
 			ColorScheme = new ColorScheme()
 			{
-				// Focus = Application.Driver.MakeColor(Color.Green, Color.DarkGray),
 				Normal = Application.Driver.MakeColor(Color.Green, Color.Gray)
 			}
 		};
 
-		fileListView.SetSource(GetDirectoriesAndFiles());
-		fileListView.SelectedItemChanged += (s, e) => GetSelectedItem(fileListView, detailView);
+		//Frame for the selected file details
+		_fileDetailFrameView = new FrameView()
+		{
+			X = Pos.Right(_fileFrameView),
+			Y = Pos.Bottom(_fileContentFrameView),
+			Width = Dim.Percent(75),
+			Height = Dim.Percent(25)		
+		};
 
-		fileFrameView.Add(fileListView);
-		detailFrameView.Add(detailView);
+		//TextView for the file details frame
+		_fileDetailTextView = new TextView()
+		{
+			Width = Dim.Fill(),
+			Height = Dim.Fill(),
+			ReadOnly = true,
+			ColorScheme = new ColorScheme()
+			{
+				Normal = Application.Driver.MakeColor(Color.Green, Color.Gray)
+			}
+		};
 
-		Add(fileFrameView, detailFrameView);
+		_statusBar = new StatusBar(new Shortcut[]
+		{
+			new(Key.N.WithAlt, "New", () => MessageBox.Query("Dialog", "TODO:: LATER")),
+			new(Key.R.WithAlt, "Rename", () => MessageBox.Query("Dialog", "TODO:: LATER")),
+			new(Key.D.WithAlt, "Delete", () => DeleteConfirm()),
+			new(Key.C.WithAlt, "Copy", () => MessageBox.Query("Dialog", "TODO:: LATER")),
+			new(Key.M.WithAlt, "Move", () => MessageBox.Query("Dialog", "TODO:: LATER")),
+			new(Application.QuitKey, "Quit", () => Application.RequestStop()),
+		});
+
+		_fileListView.SetSource(GetDirectoriesAndFiles());
+		_fileListView.KeystrokeNavigator.Collection = Enumerable.Empty<string>().ToList();
+		_fileListView.SelectedItemChanged += async (s, e) => await GetSelectedItem();
+
+		_fileFrameView.Add(_fileListView);
+		_fileContentFrameView.Add(_fileContentTextView);
+		_fileDetailFrameView.Add(_fileDetailTextView);
+
+		Add(_fileFrameView, _fileContentFrameView, _fileDetailFrameView, _statusBar);
 	}
 
-	private void GetSelectedItem(ListView fileList, TextView detailListView)
+	private async Task GetSelectedItem()
 	{
-		var selectedItem = fileList.SelectedItem;
+		var selectedItem = _fileListView!.SelectedItem;
 		var files = GetDirectoriesAndFiles();
 		string selectedPath = string.Empty;
 		if (selectedItem >= 0 || selectedItem < files.Count())
@@ -67,15 +113,21 @@ public class App : Window
 		try
 		{
 			var info = new FileInfo(Path.Combine(Environment.CurrentDirectory, selectedPath));
-			detailListView.Text = $"Name: {info.Name}\n" +
-				$"Full Path: {info.FullName}\n" +
+			_fileDetailTextView!.Text = $"Name: {info.Name}\n" +
+				// $"Full Path: {info.FullName}\n" +
 				$"Size: {(info.Attributes.HasFlag(FileAttributes.Directory) ? "N/A (Directory)" : info.Length + " bytes")}\n" +
 				$"Last Modified: {info.LastWriteTime}\n" +
 				$"Type: {(info.Attributes.HasFlag(FileAttributes.Directory) ? "Directory" : "File")}";
+
+			if(!info.Attributes.HasFlag(FileAttributes.Directory) && !FileHelper.IsBinary(info.FullName))
+				_fileContentTextView!.Text = await FileHelper.ReadFileContents(info.FullName);
+			else
+				_fileContentTextView!.Text = "\n\n\n\n\t\t\t<Not Supported>\n" +
+										$"\t\t\tTemporary until TextAlignment is fixed :)";
 		}
 		catch (Exception ex)
 		{
-			detailListView.Text = $"Error: {ex.Message}";
+			_fileDetailTextView!.Text = $"Error: {ex.Message}\n";
 		}
 	}
 
@@ -93,5 +145,22 @@ public class App : Window
 		listOfFilesAndDirs.AddRange(files);
 			
 		return new ObservableCollection<string?>(listOfFilesAndDirs);
+	}
+
+	private void DeleteConfirm()
+	{
+		var prompt = MessageBox.Query(30, 5,
+                "Delete?", "Are you sure to delete the file?",
+                "Yea", "Nah", "Cancel");
+
+            switch (prompt)
+            {
+                case 0:
+                    break;
+                case 1:
+                    break;
+                case 2:
+                    return;
+            }
 	}
 }
