@@ -6,8 +6,7 @@ public class App : Window
 {
 	public App()
 	{
-		Title = $"Minimalist File Manager - { Application.QuitKey } to quit";
-		// DefaultBorderStyle = LineStyle.None;
+		Title = $"mfm - { Application.QuitKey } to quit";
 		ColorScheme = new ColorScheme
 		{
 			Normal = Application.Driver!.MakeColor(Color.BrightGreen, Color.DarkGray)
@@ -16,9 +15,10 @@ public class App : Window
 		var fileFrameView = new FrameView()
 		{
 			Y = 1,
-			Title = "Test",
-			Width = Dim.Percent(50),
+			X = 1,
+			Width = Dim.Percent(25),
 			Height = Dim.Fill(),
+			BorderStyle = LineStyle.None,
 		};
 
 		var fileListView = new ListView()
@@ -29,27 +29,25 @@ public class App : Window
 
 		var detailFrameView = new FrameView()
 		{
-			Title = "Test1",
 			X = Pos.Right(fileFrameView),
-			Y = 1,
-			Width = Dim.Percent(50),
-			Height = Dim.Fill()	
+			Width = Dim.Percent(75),
+			Height = Dim.Fill()		
 		};
 
-		var detailView = new ListView()
+		var detailView = new TextView()
 		{
 			Width = Dim.Fill(),
-			Height = Dim.Fill()	
+			Height = Dim.Fill(),
+			ReadOnly = true,
+			ColorScheme = new ColorScheme()
+			{
+				// Focus = Application.Driver.MakeColor(Color.Green, Color.DarkGray),
+				Normal = Application.Driver.MakeColor(Color.Green, Color.Gray)
+			}
 		};
 
-
-		var homeDir = Environment.CurrentDirectory;
-		string?[] directories = Directory.GetDirectories(homeDir)
-							.Select(d => new DirectoryInfo(d).Name).ToArray();
-		string[] files = Directory.GetFiles(homeDir)
-							.Select(f => Path.GetFileName(f)).ToArray();
-
-		fileListView.SetSource(GetDirectoriesAndFiles(directories, files));
+		fileListView.SetSource(GetDirectoriesAndFiles());
+		fileListView.SelectedItemChanged += (s, e) => GetSelectedItem(fileListView, detailView);
 
 		fileFrameView.Add(fileListView);
 		detailFrameView.Add(detailView);
@@ -57,12 +55,41 @@ public class App : Window
 		Add(fileFrameView, detailFrameView);
 	}
 
-	private ObservableCollection<string?> GetDirectoriesAndFiles(
-		string?[] dirs, string[] files)
+	private void GetSelectedItem(ListView fileList, TextView detailListView)
+	{
+		var selectedItem = fileList.SelectedItem;
+		var files = GetDirectoriesAndFiles();
+		string selectedPath = string.Empty;
+		if (selectedItem >= 0 || selectedItem < files.Count())
+		{
+			selectedPath = files[selectedItem]!;
+		}
+		try
+		{
+			var info = new FileInfo(Path.Combine(Environment.CurrentDirectory, selectedPath));
+			detailListView.Text = $"Name: {info.Name}\n" +
+				$"Full Path: {info.FullName}\n" +
+				$"Size: {(info.Attributes.HasFlag(FileAttributes.Directory) ? "N/A (Directory)" : info.Length + " bytes")}\n" +
+				$"Last Modified: {info.LastWriteTime}\n" +
+				$"Type: {(info.Attributes.HasFlag(FileAttributes.Directory) ? "Directory" : "File")}";
+		}
+		catch (Exception ex)
+		{
+			detailListView.Text = $"Error: {ex.Message}";
+		}
+	}
+
+	private ObservableCollection<string?> GetDirectoriesAndFiles()
 	{
 		List<string?> listOfFilesAndDirs = new();
 
-		listOfFilesAndDirs.AddRange(dirs);
+		var homeDir = Environment.CurrentDirectory;
+		string?[] directories = Directory.GetDirectories(homeDir)
+							.Select(d => new DirectoryInfo(d).Name).ToArray();
+		string[] files = Directory.GetFiles(homeDir)
+							.Select(f => Path.GetFileName(f)).ToArray();
+
+		listOfFilesAndDirs.AddRange(directories);
 		listOfFilesAndDirs.AddRange(files);
 			
 		return new ObservableCollection<string?>(listOfFilesAndDirs);
