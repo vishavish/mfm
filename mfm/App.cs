@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using Terminal.Gui;
 using Utils;
 
 
@@ -12,6 +11,8 @@ public class App : Window
 	private static FrameView? _fileContentFrameView;
 	private static TextView? _fileContentTextView;
 	private static StatusBar? _statusBar;
+
+	private static string _selectedPath = "";
 
 	public App()
 	{
@@ -82,17 +83,17 @@ public class App : Window
 
 		_statusBar = new StatusBar(new Shortcut[]
 		{
-			new(Key.N.WithAlt, "New", () => MessageBox.Query("Dialog", "TODO:: LATER")),
-			new(Key.R.WithAlt, "Rename", () => MessageBox.Query("Dialog", "TODO:: LATER")),
+			new(Key.N.WithAlt, "New", () => NewFile()),
+			new(Key.R.WithAlt, "Rename", () => MessageBox.Query("Dialog", "TODO:: RENAME")),
 			new(Key.D.WithAlt, "Delete", () => DeleteConfirm()),
-			new(Key.C.WithAlt, "Copy", () => MessageBox.Query("Dialog", "TODO:: LATER")),
-			new(Key.M.WithAlt, "Move", () => MessageBox.Query("Dialog", "TODO:: LATER")),
+			new(Key.C.WithAlt, "Copy", () => MessageBox.Query("Dialog", "TODO:: COPY")),
+			new(Key.M.WithAlt, "Move", () => MessageBox.Query("Dialog", "TODO:: MOVE")),
 			new(Application.QuitKey, "Quit", () => Application.RequestStop()),
 		});
 
 		_fileListView.SetSource(GetDirectoriesAndFiles());
 		_fileListView.KeystrokeNavigator.Collection = Enumerable.Empty<string>().ToList();
-		_fileListView.SelectedItemChanged += async (s, e) => await GetSelectedItem();
+		_fileListView.SelectedItemChanged += async (_, _) => await GetSelectedItem();
 
 		_fileFrameView.Add(_fileListView);
 		_fileContentFrameView.Add(_fileContentTextView);
@@ -113,6 +114,7 @@ public class App : Window
 		try
 		{
 			var info = new FileInfo(Path.Combine(Environment.CurrentDirectory, selectedPath));
+			_selectedPath = Path.Combine(Environment.CurrentDirectory, selectedPath);
 			_fileDetailTextView!.Text = $"Name: {info.Name}\n" +
 				// $"Full Path: {info.FullName}\n" +
 				$"Size: {(info.Attributes.HasFlag(FileAttributes.Directory) ? "N/A (Directory)" : info.Length + " bytes")}\n" +
@@ -149,18 +151,13 @@ public class App : Window
 
 	private void DeleteConfirm()
 	{
-		var prompt = MessageBox.Query(30, 5,
-                "Delete?", "Are you sure to delete the file?",
-                "Yea", "Nah", "Cancel");
+ 		Application.Run(new Delete(_selectedPath)); 
+		_fileListView!.SetSource(GetDirectoriesAndFiles());
+	}
 
-            switch (prompt)
-            {
-                case 0:
-                    break;
-                case 1:
-                    break;
-                case 2:
-                    return;
-            }
+	private void NewFile()
+	{
+		Application.Run<NewFile>();
+		_fileListView!.SetSource(GetDirectoriesAndFiles());
 	}
 }
