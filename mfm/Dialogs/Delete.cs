@@ -13,7 +13,7 @@ public class Delete : Window
 		X = Pos.Center();
 		Y = Pos.Center();
 		Width = 40;
-		Height = Dim.Percent(35);
+		Height = 8;
 
 		ColorScheme =  new ColorScheme()
 		{
@@ -30,7 +30,7 @@ public class Delete : Window
 		_yesButton = new Button()
 		{
 			Text = "Yes",
-			X = 10,
+			X = Pos.Percent(30),
 			Y = Pos.Bottom(_messageTextField) + 1
 		};
 

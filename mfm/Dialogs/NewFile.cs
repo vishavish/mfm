@@ -13,7 +13,7 @@ public class NewFile : Window
 		X = Pos.Center();
 		Y = Pos.Center();
         Width = 40;
-        Height = Dim.Percent(33);
+        Height = 7;
 
 		ColorScheme = new ColorScheme
 		{
@@ -30,16 +30,17 @@ public class NewFile : Window
         _confirmButton = new Button()
         {
             Text = "Add",
-            X = 10,
+            X = Pos.Percent(25),
             Y = Pos.Bottom(_fileTextField) + 1,
-			IsDefault = true
         };
 
 		_closeButton = new Button()
 		{
 			Text = "Cancel",
 			X = Pos.Right(_confirmButton) + 1,
-			Y = Pos.Bottom(_fileTextField) + 1
+			Y = Pos.Bottom(_fileTextField) + 1,
+			IsDefault = true
+
 		};
 
         _confirmButton.Accept += (_, _) => AddNew(_fileTextField.Text);

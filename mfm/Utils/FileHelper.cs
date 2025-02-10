@@ -13,6 +13,8 @@ public static class FileHelper
 		return await reader.ReadToEndAsync();
 	}
 
+	public static bool IsDirectory(string filePath) => Directory.Exists(filePath);
+	
 	//@https://stackoverflow.com/questions/4744890/c-sharp-check-if-file-is-text-based
 	public static bool IsBinary(string filePath, int requiredConsecutiveNul = 1)
 	{

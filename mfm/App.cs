@@ -16,7 +16,7 @@ public class App : Window
 
 	public App()
 	{
-		Title = "mfm";
+		// Title = "mfm";
 		ColorScheme = new ColorScheme
 		{
 			Normal = Application.Driver!.MakeColor(Color.BrightGreen, Color.DarkGray)
@@ -84,8 +84,8 @@ public class App : Window
 		_statusBar = new StatusBar(new Shortcut[]
 		{
 			new(Key.N.WithAlt, "New", () => NewFile()),
-			new(Key.R.WithAlt, "Rename", () => MessageBox.Query("Dialog", "TODO:: RENAME")),
-			new(Key.D.WithAlt, "Delete", () => DeleteConfirm()),
+			new(Key.R.WithAlt, "Rename", () => Rename()),
+			new(Key.D.WithAlt, "Delete", () => Delete()),
 			new(Key.C.WithAlt, "Copy", () => MessageBox.Query("Dialog", "TODO:: COPY")),
 			new(Key.M.WithAlt, "Move", () => MessageBox.Query("Dialog", "TODO:: MOVE")),
 			new(Application.QuitKey, "Quit", () => Application.RequestStop()),
@@ -139,17 +139,19 @@ public class App : Window
 
 		var homeDir = Environment.CurrentDirectory;
 		string?[] directories = Directory.GetDirectories(homeDir)
-							.Select(d => new DirectoryInfo(d).Name).ToArray();
+							.Select(d => new DirectoryInfo(d).Name)
+							.ToArray();
 		string[] files = Directory.GetFiles(homeDir)
-							.Select(f => Path.GetFileName(f)).ToArray();
+							.Select(f => Path.GetFileName(f))
+							.ToArray();
 
-		listOfFilesAndDirs.AddRange(directories);
-		listOfFilesAndDirs.AddRange(files);
+		listOfFilesAndDirs.AddRange(directories.Order());
+		listOfFilesAndDirs.AddRange(files.Order());
 			
 		return new ObservableCollection<string?>(listOfFilesAndDirs);
 	}
 
-	private void DeleteConfirm()
+	private void Delete()
 	{
  		Application.Run(new Delete(_selectedPath)); 
 		_fileListView!.SetSource(GetDirectoriesAndFiles());
@@ -158,6 +160,12 @@ public class App : Window
 	private void NewFile()
 	{
 		Application.Run<NewFile>();
+		_fileListView!.SetSource(GetDirectoriesAndFiles());
+	}
+
+	private void Rename()
+	{
+		Application.Run(new Rename(_selectedPath));
 		_fileListView!.SetSource(GetDirectoriesAndFiles());
 	}
 }
