@@ -4,11 +4,14 @@ set -e
 
 echo "Building project..."
 
-cd ./mfm
-dotnet publish --self-contained true -r linux-x64 -p:PublishSingleFile=true
+dotnet publish mfm -c Release -r linux-x64 --output build/linux 
+# dotnet publish mfm -c Release -r linux-x64 -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained true --output build/linux
+# dotnet publish mfm -c Release -r linux-x64 -p:PublishSingleFile=true --self-contained true --output build/linux
 
-echo "Copying executable..."
+echo "Linking executable..."
 
-cp -r ./bin/Release/net9.0/linux-x64/publish/mfm ~/.local/bin
+ln -s $PWD/build/linux/mfm ~/.local/bin/mfm
+
+# cp -r ./build/linux/mfm ~/.local/bin
 
 echo "Successfully installed..."

@@ -1,26 +1,35 @@
  # mfm
 
-**mfm** is a minimalist file manager made with the .NET Core framework.
+**mfm** is a simple terminal file manager made with the .NET framework.
 
-## Purpose
+ ## Purpose
 
-The motivation for this project is to explore and learn about the [Terminal.Gui](https://github.com/gui-cs/Terminal.Gui "Terminal.Gui") package.
-
-This does not aim to replace any of the existing terminal file managers available.
+The motivation for this project is to explore and learn the [Terminal.Gui](https://github.com/gui-cs/Terminal.Gui "Terminal.Gui") package.
 
 ## Installing
 
-** TODO **
+**TODO**
 
 ## Building
 
-** TODO **
+**NOTE**: This project requires the [.NET SDK](https://dotnet.microsoft.com/en-us/download).
 
-### Goals
+1. Clone the repository:
+```
+git clone https://github.com/vishavish/mfm.git
+```
+
+2. Execute the bash script inside:
+```
+cd mfm
+./build.sh
+```
+
+## Goals
 
 This project aims to support the basic file operations such as:
 
 - ~~Viewing~~
-- Deleting
-- Renaming
+- ~~Deleting~~
+- ~~Renaming~~
 - Copying/Moving
