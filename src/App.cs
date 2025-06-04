@@ -13,13 +13,14 @@ public class App : Window
 	private static StatusBar? _statusBar;
 
 	private static string _selectedPath = "";
+	private static string _parentDirectory = "";
+
 
 	public App()
 	{
-		// Title = "mfm";
 		ColorScheme = new ColorScheme
 		{
-			Normal = Application.Driver!.MakeColor(Color.BrightGreen, Color.DarkGray)
+			Normal = Application.Driver!.MakeColor(Color.BrightYellow, Color.DarkGray)
 		};
 
 		//Frame for the list of files and directories
@@ -90,10 +91,13 @@ public class App : Window
 			new(Key.M.WithAlt, "Move", () => MessageBox.Query("Dialog", "TODO:: MOVE")),
 			new(Application.QuitKey, "Quit", () => Application.RequestStop()),
 		});
+		
+		_parentDirectory = Environment.CurrentDirectory;
 
 		_fileListView.SetSource(GetDirectoriesAndFiles());
 		_fileListView.KeystrokeNavigator.Collection = Enumerable.Empty<string>().ToList();
 		_fileListView.SelectedItemChanged += async (_, _) => await GetSelectedItem();
+		_fileListView.OpenSelectedItem += (_, _)  => Open();
 
 		_fileFrameView.Add(_fileListView);
 		_fileContentFrameView.Add(_fileContentTextView);
@@ -102,21 +106,34 @@ public class App : Window
 		Add(_fileFrameView, _fileContentFrameView, _fileDetailFrameView, _statusBar);
 	}
 
+	private void Open()
+	{
+		var index = _fileListView!.SelectedItem;
+		var selectedFile = _fileListView.Source.ToList()[index]?.ToString();
+		_selectedPath = selectedFile!.Equals(".") ? "../" : selectedFile ;
+		
+		var path = Path.Combine(_parentDirectory, _selectedPath);
+		if (FileHelper.IsDirectory(path))
+		{
+			_parentDirectory  = Path.Combine(_parentDirectory, _selectedPath);
+			_fileListView.SetSource(GetDirectoriesAndFiles(_parentDirectory));
+		}
+	}
 	private async Task GetSelectedItem()
 	{
-		var selectedItem = _fileListView!.SelectedItem;
-		var files = GetDirectoriesAndFiles();
+		var index = _fileListView!.SelectedItem;
+		var files = _fileListView.Source.ToList();
 		string selectedPath = string.Empty;
-		if (selectedItem >= 0 || selectedItem < files.Count())
+		if (index >= 0 || index < files.Count)
 		{
-			selectedPath = files[selectedItem]!;
+			selectedPath = files[index]?.ToString() ?? "";
 		}
+		
 		try
 		{
-			var info = new FileInfo(Path.Combine(Environment.CurrentDirectory, selectedPath));
-			_selectedPath = Path.Combine(Environment.CurrentDirectory, selectedPath);
+			selectedPath = Path.Combine(_parentDirectory, selectedPath);
+			var info = new FileInfo(selectedPath);
 			_fileDetailTextView!.Text = $"Name: {info.Name}\n" +
-				// $"Full Path: {info.FullName}\n" +
 				$"Size: {(info.Attributes.HasFlag(FileAttributes.Directory) ? "N/A (Directory)" : info.Length + " bytes")}\n" +
 				$"Last Modified: {info.LastWriteTime}\n" +
 				$"Type: {(info.Attributes.HasFlag(FileAttributes.Directory) ? "Directory" : "File")}";
@@ -133,11 +150,11 @@ public class App : Window
 		}
 	}
 
-	private ObservableCollection<string?> GetDirectoriesAndFiles()
+	private ObservableCollection<string?> GetDirectoriesAndFiles(string dirPath = "")
 	{
 		List<string?> listOfFilesAndDirs = new();
 
-		var homeDir = Environment.CurrentDirectory;
+		var homeDir = string.IsNullOrEmpty(dirPath) ? Environment.CurrentDirectory : dirPath ;
 		string?[] directories = Directory.GetDirectories(homeDir)
 							.Select(d => new DirectoryInfo(d).Name)
 							.ToArray();
@@ -145,6 +162,7 @@ public class App : Window
 							.Select(f => Path.GetFileName(f))
 							.ToArray();
 
+		listOfFilesAndDirs.Add(".");
 		listOfFilesAndDirs.AddRange(directories.Order());
 		listOfFilesAndDirs.AddRange(files.Order());
 			
@@ -153,7 +171,8 @@ public class App : Window
 
 	private void Delete()
 	{
- 		Application.Run(new Delete(_selectedPath)); 
+		string x = string.IsNullOrEmpty(_selectedPath) ? _parentDirectory : _selectedPath;
+ 	 Application.Run(new Delete(x)); 
 		_fileListView!.SetSource(GetDirectoriesAndFiles());
 	}
 

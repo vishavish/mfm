@@ -9,7 +9,9 @@ public class Delete : Window
 
 	public Delete(String selectedPath)
 	{
-		Title = "Delete";
+		Console.WriteLine($"Path { selectedPath }");
+	
+		Title = selectedPath;
 		X = Pos.Center();
 		Y = Pos.Center();
 		Width = 40;
@@ -17,7 +19,7 @@ public class Delete : Window
 
 		ColorScheme =  new ColorScheme()
 		{
-			Normal = Application.Driver!.MakeColor(Color.BrightGreen, Color.DarkGray)
+			Normal = Application.Driver!.MakeColor(Color.BrightYellow, Color.DarkGray)
 		};
 
 		_messageTextField = new Label()
@@ -54,11 +56,11 @@ public class Delete : Window
 		{
 			if(Directory.Exists(path))
 			{
-				Directory.Delete(path, true);
+				// Directory.Delete(path, true);
 			}
 			else
 			{
-				File.Delete(path);
+				// File.Delete(path);
 			}
 
 			Application.RequestStop();

@@ -17,7 +17,7 @@ public class NewFile : Window
 
 		ColorScheme = new ColorScheme
 		{
-			Normal = Application.Driver!.MakeColor(Color.BrightGreen, Color.DarkGray)
+			Normal = Application.Driver!.MakeColor(Color.BrightYellow, Color.DarkGray)
 		};
 
         _fileTextField = new TextField
@@ -32,6 +32,7 @@ public class NewFile : Window
             Text = "Add",
             X = Pos.Percent(25),
             Y = Pos.Bottom(_fileTextField) + 1,
+			IsDefault = true
         };
 
 		_closeButton = new Button()
@@ -39,8 +40,6 @@ public class NewFile : Window
 			Text = "Cancel",
 			X = Pos.Right(_confirmButton) + 1,
 			Y = Pos.Bottom(_fileTextField) + 1,
-			IsDefault = true
-
 		};
 
         _confirmButton.Accept += (_, _) => AddNew(_fileTextField.Text);
