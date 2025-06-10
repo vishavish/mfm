@@ -9,9 +9,7 @@ public class Delete : Window
 
 	public Delete(String selectedPath)
 	{
-		Console.WriteLine($"Path { selectedPath }");
-	
-		Title = selectedPath;
+		Title = "DELETE";
 		X = Pos.Center();
 		Y = Pos.Center();
 		Width = 40;
@@ -56,11 +54,11 @@ public class Delete : Window
 		{
 			if(Directory.Exists(path))
 			{
-				// Directory.Delete(path, true);
+				Directory.Delete(path, true);
 			}
 			else
 			{
-				// File.Delete(path);
+				File.Delete(path);
 			}
 
 			Application.RequestStop();

@@ -1,10 +1,21 @@
  # mfm
 
-**mfm** is a simple terminal file manager made with the .NET.
+**mfm** is a simple terminal file manager made with .NET.
 
- ## Purpose
+![Screenshot](https://i.imgur.com/9vmtxty.png)
+
+## Purpose
 
 The motivation for this project is to explore and learn the [Terminal.Gui](https://github.com/gui-cs/Terminal.Gui "Terminal.Gui") package.
+
+## Features
+
+**mfm** supports basic file operations such as:
+
+- Viewing
+- Deleting
+- Renaming
+- Copying/Moving
 
 ## Building
 
@@ -20,12 +31,3 @@ git clone https://github.com/vishavish/mfm.git
 cd mfm
 ./build.sh
 ```
-
-## Features
-
-This project aims to support basic file operations such as:
-
-- ~~Viewing~~
-- ~~Deleting~~
-- ~~Renaming~~
-- Copying/Moving

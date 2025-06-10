@@ -7,9 +7,9 @@ public class NewFile : Window
 	private static Button? _confirmButton;
 	private static Button? _closeButton;
 	
-	public NewFile()
+	public NewFile(string path)
 	{
-		Title = "New File";
+		Title = "NEW";
 		X = Pos.Center();
 		Y = Pos.Center();
         Width = 40;
@@ -42,16 +42,15 @@ public class NewFile : Window
 			Y = Pos.Bottom(_fileTextField) + 1,
 		};
 
-        _confirmButton.Accept += (_, _) => AddNew(_fileTextField.Text);
+        _confirmButton.Accept += (_, _) => AddNew(path, _fileTextField.Text);
 		_closeButton.Accept  += (_,_) => CloseDialog();
-
-
+		
         Add(_fileTextField, _confirmButton, _closeButton);
 	}
 
-	private void AddNew(string file)
+	private void AddNew(string parentDir, string file)
 	{
-		string newFile = Path.Combine(Environment.CurrentDirectory, file);
+		string newFile = Path.Combine(parentDir, file);
 		if (File.Exists(newFile))
 		{
 			MessageBox.ErrorQuery("ERROR", "File already exists.", "OK");

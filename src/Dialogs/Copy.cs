@@ -3,28 +3,27 @@ using Utils;
 namespace Dialogs;
 
 
-public class Rename : Window
+/* THIS IS A TEMPORARY *wink wink* APPROACH UNTIL i FIGURE OUT A BETTER WAY */
+
+public class Copy : Dialog
 {
 	private static TextField? _nameTextField;
 	private static Button? _saveButton;
 	private static Button? _cancelButton;
-
-	private string _originalFileName = string.Empty;
+	
 	private string _originalFilePath = string.Empty;
-	private string _parentDir = string.Empty;
-
-	public Rename(string selectedPath, string parentDir)
+	private bool _isMove = false;
+	
+	public Copy(string selectedPath, bool isMove = false)
 	{
-		Title = "Rename";
+		_originalFilePath = selectedPath;
+		_isMove = isMove;
+	
+		Title = "COPY";
 		X = Pos.Center();
 		Y = Pos.Center();
-		Width = 40;
-		Height = 7;
-
-		_originalFilePath =selectedPath;
-		_originalFileName = Path.GetFileNameWithoutExtension(selectedPath);
-		_parentDir = parentDir;
-		
+		Width = 50;
+		Height = 10;
 
 		ColorScheme = new ColorScheme()
 		{
@@ -33,7 +32,7 @@ public class Rename : Window
 
 		_nameTextField = new TextField()
 		{
-			Text = Path.GetFileNameWithoutExtension(selectedPath),
+			Text = "",
 			Y = 1,
 			X = Pos.Center(),
 			Width = 35			
@@ -54,13 +53,18 @@ public class Rename : Window
 			IsDefault = true	
 		};
 
-		_saveButton.Accept += (_,_) => RenameFile();
+		_saveButton.Accept += (_,_) => CopyFile();
 		_cancelButton.Accept += (_,_) => CloseDialog();
 
 		Add(_nameTextField, _saveButton, _cancelButton);
 	}
-
-	private void RenameFile()
+	
+	private void CloseDialog()
+	{
+		Application.RequestStop();
+	}
+	
+	private void CopyFile()
 	{
 		string fileName = _nameTextField!.Text;
 		bool isDir = FileHelper.IsDirectory(_originalFilePath);
@@ -70,27 +74,17 @@ public class Rename : Window
 			MessageBox.ErrorQuery("ERROR", "Invalid filename.", "OK");
 			return;
 		}
-
-		// if(_originalFileName.Equals(fileName, StringComparison.OrdinalIgnoreCase))
-		// {
-		// 	MessageBox.Query("WARNING", "NO changes were made.", "OK");
-		// 	return;
-		// }
-
+		
 		try
 		{
-			if (isDir)
-			{
-				if(!Directory.Exists(fileName))
-				{
-					Directory.Move(_originalFilePath, Path.Combine(_parentDir, fileName));
-				}
-			}
-			else
+			if (!isDir)
 			{
 				if(!File.Exists(fileName))
 				{
-					File.Move(_originalFilePath, Path.Combine(_parentDir, fileName + Path.GetExtension(_originalFilePath)));				
+					if (_isMove)
+						File.Move(_originalFilePath, fileName);
+					else
+						File.Copy(_originalFilePath, fileName);
 				}
 			}
 
@@ -101,10 +95,5 @@ public class Rename : Window
 		{
 			MessageBox.ErrorQuery("ERROR", e.Message, "OK");
 		}
-	}
-
-	private void CloseDialog()
-	{
-		Application.RequestStop();
 	}
 }

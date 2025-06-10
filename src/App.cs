@@ -87,8 +87,11 @@ public class App : Window
 			new(Key.N.WithAlt, "New", () => NewFile()),
 			new(Key.R.WithAlt, "Rename", () => Rename()),
 			new(Key.D.WithAlt, "Delete", () => Delete()),
-			new(Key.C.WithAlt, "Copy", () => MessageBox.Query("Dialog", "TODO:: COPY")),
-			new(Key.M.WithAlt, "Move", () => MessageBox.Query("Dialog", "TODO:: MOVE")),
+			
+			// Using CTRL here because it conflicts with my komorebi keybindings
+			new(Key.C.WithCtrl, "Copy", () => Copy()), 
+			new(Key.M.WithCtrl, "Move", () => Move()), 
+			
 			new(Application.QuitKey, "Quit", () => Application.RequestStop()),
 		});
 		
@@ -110,15 +113,16 @@ public class App : Window
 	{
 		var index = _fileListView!.SelectedItem;
 		var selectedFile = _fileListView.Source.ToList()[index]?.ToString();
-		_selectedPath = selectedFile!.Equals(".") ? "../" : selectedFile ;
-		
-		var path = Path.Combine(_parentDirectory, _selectedPath);
+		_selectedPath = selectedFile!.Equals(".") ?	"../" :	selectedFile;
+							
+		var path = Path.GetFullPath(Path.Combine(_parentDirectory, _selectedPath));
 		if (FileHelper.IsDirectory(path))
 		{
 			_parentDirectory  = Path.Combine(_parentDirectory, _selectedPath);
 			_fileListView.SetSource(GetDirectoriesAndFiles(_parentDirectory));
 		}
 	}
+	
 	private async Task GetSelectedItem()
 	{
 		var index = _fileListView!.SelectedItem;
@@ -132,6 +136,7 @@ public class App : Window
 		try
 		{
 			selectedPath = Path.Combine(_parentDirectory, selectedPath);
+			_selectedPath= Path.Combine(_parentDirectory, selectedPath);
 			var info = new FileInfo(selectedPath);
 			_fileDetailTextView!.Text = $"Name: {info.Name}\n" +
 				$"Size: {(info.Attributes.HasFlag(FileAttributes.Directory) ? "N/A (Directory)" : info.Length + " bytes")}\n" +
@@ -171,20 +176,32 @@ public class App : Window
 
 	private void Delete()
 	{
-		string x = string.IsNullOrEmpty(_selectedPath) ? _parentDirectory : _selectedPath;
- 	 Application.Run(new Delete(x)); 
-		_fileListView!.SetSource(GetDirectoriesAndFiles());
+		string path = string.IsNullOrEmpty(_selectedPath) ? _parentDirectory : _selectedPath;
+		Application.Run(new Delete(path)); 
+		_fileListView!.SetSource(GetDirectoriesAndFiles(_parentDirectory));
 	}
 
 	private void NewFile()
 	{
-		Application.Run<NewFile>();
-		_fileListView!.SetSource(GetDirectoriesAndFiles());
+		Application.Run(new NewFile(_parentDirectory));
+		_fileListView!.SetSource(GetDirectoriesAndFiles(_parentDirectory));
 	}
 
 	private void Rename()
 	{
-		Application.Run(new Rename(_selectedPath));
-		_fileListView!.SetSource(GetDirectoriesAndFiles());
+		Application.Run(new Rename(_selectedPath, _parentDirectory));
+		_fileListView!.SetSource(GetDirectoriesAndFiles(_parentDirectory));
+	}
+
+	private void Copy()
+	{
+		Application.Run(new Copy(_selectedPath, false));
+		_fileListView!.SetSource(GetDirectoriesAndFiles(_parentDirectory));
+	}
+	
+	private void Move()
+	{
+		Application.Run(new Copy(_selectedPath, true));
+		_fileListView!.SetSource(GetDirectoriesAndFiles(_parentDirectory));
 	}
 }
